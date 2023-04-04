@@ -1,24 +1,14 @@
 import { useState } from 'react'
 
-const defaultItems = [
-    {
-      id: 1,
-      text: "Kupi mlijeko",
-      done: false,
-    },
-    {
-      id: 2,
-      text: "Kupi brašno",
-      done: true,
-    },
-];
-
 function App() {
-  const [items, setItems] = useState(defaultItems);
+  const [items, setItems] = useState([]);
   const [formState, setFormState] = useState({text: "",
 });
+const [sort, setSort] = useState("createdAtDesc");
 
-  console.log(items);
+const handleSortChange = (event) => {
+  setSort(event.target.value);
+}
 
   const handleChange = (event) => {
     setFormState({
@@ -27,7 +17,14 @@ function App() {
     });
   }
 
-  const itemComponents = items.map(item => {
+  const itemComponents = items
+    .sort((a, b) => {
+    if (sort === "createdAtAsc") {
+      return a.createdAt - b.createdAt;
+    }
+    return b.createdAt - a.createdAt;
+  })
+    .map(item => {
     const handleChange = () => {
       console.log('Handle change for item', item);
       setItems(items.map(newItem => {
@@ -44,12 +41,10 @@ const handleClick = () => {
   }));
 };
 
-
-
     return (
       <div key={item.id}>
         <input type="checkbox" checked={item.done} onChange={handleChange}/>
-        {item.text}
+        {item.text} ({new Date(item.createdAt).toUTCString()})
         <button onClick={handleClick}>X</button>
       </div>
     );
@@ -63,10 +58,12 @@ const handleSubmit = (event) => {
       id: Date.now(),
       text: formState.text,
       done: false,
+      createdAt: Date.now(),
     },
   ]);
   setFormState({...formState, text: ''});
 }
+
 
   return (
       <div>
@@ -75,6 +72,10 @@ const handleSubmit = (event) => {
           <input type="text" name="text" onChange={handleChange} value={formState.text}></input>
           <button type="submit" onSubmit={()=> handleClickAdd()}>Add item</button>
         </form>
+        <select onChange={handleSortChange} defaultValue={sort}>
+          <option value="createdAtAsc">Created at (Ascending)</option>
+          <option value="createdAtDesc">Created at (Descending)</option>
+        </select>
         {itemComponents}
       </div>
   )
